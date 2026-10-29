@@ -1,0 +1,89 @@
+/* ---------- Flashcards ---------- */
+.flash-fab {
+  position: fixed; left: 0; top: 50%; z-index: 15;
+  transform: translateY(-50%);
+  width: 38px; height: 56px; padding: 0 0 0 env(safe-area-inset-left);
+  display: grid; place-items: center;
+  border: 0; border-radius: 0 16px 16px 0;
+  background: var(--accent); color: var(--accent-ink);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .25);
+  cursor: pointer; transition: width .15s;
+}
+.flash-fab svg { width: 22px; height: 22px; }
+.flash-fab:hover { width: 46px; }
+.flash-fab:active { width: 34px; }
+
+.flash-bolt { display: inline-grid; place-items: center; width: 48px; height: 48px; border-radius: 14px; background: var(--accent-soft); color: var(--accent); }
+.flash-bolt svg { width: 28px; height: 28px; }
+.flash-bolt.big { width: 72px; height: 72px; border-radius: 20px; }
+.flash-bolt.big svg { width: 40px; height: 40px; }
+.flash-title { font-size: 1.3rem; }
+.flash-choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 16px 0 12px; }
+.flash-choices button {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 14px 6px; border-radius: 16px;
+  border: 1px solid var(--line); background: var(--surface-2); color: var(--ink);
+  font: inherit; cursor: pointer;
+}
+.flash-choices button:hover { border-color: var(--accent); }
+.flash-choices .jp { font-size: 2.2rem; line-height: 1.1; color: var(--accent); }
+.flash-opt { display: flex; align-items: center; gap: 8px; font-size: .92rem; color: var(--muted); cursor: pointer; }
+.flash-opt input { width: 18px; height: 18px; accent-color: var(--accent); }
+
+/* Tela da sessão */
+.flash-view {
+  width: 100%; height: 100%; max-width: none; max-height: none; margin: 0;
+  padding: 0; border: 0; background: var(--bg); color: var(--ink);
+}
+.flash-view::backdrop { background: var(--bg); }
+.flash-wrap {
+  min-height: 100%; max-width: 520px; margin: 0 auto;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;
+  padding: calc(16px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom));
+}
+.flash-top { width: 100%; display: flex; align-items: center; gap: 10px; }
+.flash-label { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--accent); }
+.flash-label svg { width: 18px; height: 18px; }
+.flash-count { flex: 1; text-align: center; color: var(--muted); font-size: .9rem; }
+
+.flash-card {
+  width: min(320px, 84vw); aspect-ratio: 3 / 4;
+  padding: 0; border: 0; background: none; color: inherit;
+  perspective: 1200px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.flash-card:focus-visible { outline: none; }
+.flash-card:focus-visible .flash-face { outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent); }
+.flash-inner {
+  position: relative; display: block; width: 100%; height: 100%;
+  transform-style: preserve-3d; transition: transform .55s cubic-bezier(.3, .7, .3, 1);
+}
+.flash-card.flipped .flash-inner { transform: rotateY(180deg); }
+.flash-card.no-anim .flash-inner { transition: none; }
+.flash-face {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  border-radius: 24px; border: 1px solid var(--line);
+  background: var(--surface); box-shadow: var(--shadow);
+  -webkit-backface-visibility: hidden; backface-visibility: hidden;
+}
+.flash-face .jp { font-size: 9rem; line-height: 1.05; }
+.flash-face .jp.combo { font-size: 6.2rem; }
+.flash-face small { color: var(--muted); font-size: .85rem; }
+.flash-front small { position: absolute; bottom: 18px; }
+.flash-back { transform: rotateY(180deg); background: var(--surface); border-color: var(--accent); }
+.flash-back .jp { font-size: 7rem; }
+.flash-back .jp.combo { font-size: 5rem; }
+.flash-roma { font-size: 3rem; line-height: 1; color: var(--accent); letter-spacing: .02em; }
+.flash-kind { text-transform: uppercase; letter-spacing: .1em; }
+
+.flash-actions { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.flash-actions .icon-btn[hidden] { display: inline-grid; visibility: hidden; }
+.flash-next { min-width: 160px; justify-content: center; font-size: 1.05rem; }
+.flash-end { text-align: center; }
+.flash-end h2 { font-size: 1.6rem; margin: 0; }
+.flash-end p { margin: 0; font-size: 1.1rem; }
+.flash-end .jp { font-size: 1.6rem; color: var(--accent); }
+
+@media (prefers-reduced-motion: reduce) {
+  .flash-inner { transition: none; }
+}

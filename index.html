@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Nihongo Journey</title>
-  <meta name="description" content="Estudo pessoal de japonês: hiragana e katakana com ordem dos traços, pronúncia e exemplos.">
+  <meta name="description" content="Estudo pessoal de japonês: módulos com aulas e colinha de hiragana e katakana.">
   <meta name="theme-color" content="#f6f1e7" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#15161a" media="(prefers-color-scheme: dark)">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -16,6 +16,8 @@
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="preload" href="fonts/klee-one-600.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/lesson.css">
+  <link rel="stylesheet" href="css/flash.css">
   <script>
     /* Aplica o tema salvo antes de pintar a página, para não piscar. */
     try { var t = localStorage.getItem('nj.theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
@@ -48,6 +50,13 @@
   <script src="js/util.js"></script>
   <script src="js/stroke.js"></script>
   <script src="js/kana.js"></script>
+  <script src="js/ime.js"></script>
+  <script src="js/lesson.js"></script>
+  <script src="modules/m1/m1.js"></script>
+  <script src="modules/m1/hiragana.js"></script>
+  <script src="modules/m1/katakana.js"></script>
+  <script src="modules/m1/romaji.js"></script>
+  <script src="js/flash.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

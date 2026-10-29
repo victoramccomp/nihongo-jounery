@@ -1,15 +1,24 @@
 /* Service worker: guarda o app no aparelho para estudar sem internet.
    Ao alterar qualquer arquivo, aumente VERSION para os celulares baixarem a versão nova. */
-const VERSION = 'nj-v1';
+const VERSION = 'nj-v3';
 const FILES = [
   './',
   'index.html',
   'manifest.webmanifest',
   'css/app.css',
+  'css/lesson.css',
+  'css/flash.css',
   'js/util.js',
   'js/stroke.js',
   'js/kana.js',
+  'js/ime.js',
+  'js/lesson.js',
+  'js/flash.js',
   'js/app.js',
+  'modules/m1/m1.js',
+  'modules/m1/hiragana.js',
+  'modules/m1/katakana.js',
+  'modules/m1/romaji.js',
   'data/strokes.js',
   'data/sounds.js',
   'data/hiragana.js',
