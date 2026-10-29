@@ -23,30 +23,88 @@ NJ.util = (function () {
     toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
   }
 
-  /* Áudio pela voz japonesa do próprio aparelho (Web Speech API). Funciona offline na maioria dos celulares. */
-  let jaVoice = null;
-  function pickVoice() {
-    if (!('speechSynthesis' in window)) return null;
-    const voices = speechSynthesis.getVoices();
-    jaVoice = voices.find((v) => /^ja[-_]JP/i.test(v.lang) && /google|kyoko|o-ren|siri/i.test(v.name)) ||
-              voices.find((v) => /^ja/i.test(v.lang)) || null;
-    return jaVoice;
+  /* Áudio pela voz japonesa do próprio aparelho (Web Speech API).
+     Prioridade: a voz escolhida em "Áudio" > vozes locais (offline, mais confiáveis) > vozes online.
+     As vozes online do Chrome no computador ("Google 日本語") às vezes "tocam" sem sair som. */
+  const hasTTS = 'speechSynthesis' in window;
+  function jaVoices() {
+    if (!hasTTS) return [];
+    const saved = store.get('voice', '');
+    return speechSynthesis.getVoices()
+      .filter((v) => /^ja/i.test(v.lang))
+      .sort((a, b) => (b.name === saved) - (a.name === saved) || b.localService - a.localService);
   }
-  if ('speechSynthesis' in window) {
-    pickVoice();
-    speechSynthesis.addEventListener && speechSynthesis.addEventListener('voiceschanged', pickVoice);
+  if (hasTTS) {
+    speechSynthesis.getVoices();
+    speechSynthesis.addEventListener && speechSynthesis.addEventListener('voiceschanged', () => speechSynthesis.getVoices());
   }
 
-  function speak(text, rate) {
-    if (!('speechSynthesis' in window)) { toast('Este navegador não tem síntese de voz.'); return; }
-    if (!jaVoice) pickVoice();
-    speechSynthesis.cancel();
+  let utter = null;      // referência global: sem ela o Chrome pode descartar a fala no meio
+  let timer = null;
+  function speak(text, rate, voiceName) {
+    if (!hasTTS) { toast('Este navegador não tem síntese de voz.'); return; }
+    const voices = jaVoices();
+    const voice = (voiceName && voices.find((v) => v.name === voiceName)) || voices[0] || null;
+    if (!voice) toast('Sem voz japonesa instalada: adicione "Japonês" nas vozes do sistema.');
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'ja-JP';
-    if (jaVoice) u.voice = jaVoice;
-    u.rate = rate || 0.8;
-    speechSynthesis.speak(u);
-    if (!jaVoice) toast('Sem voz japonesa instalada: instale "Japonês" nas vozes do sistema.');
+    if (voice) u.voice = voice;
+    u.rate = rate || store.get('rate', 0.8);
+    u.onerror = (ev) => {
+      if (ev.error === 'interrupted' || ev.error === 'canceled') return;
+      toast('A voz "' + (voice ? voice.name : 'padrão') + '" falhou. Troque de voz em Áudio (ícone de alto-falante no topo).');
+    };
+    utter = u;
+    clearTimeout(timer);
+    /* Chamar speak() logo após cancel() faz o Chrome às vezes engolir a fala: espera um instante. */
+    const busy = speechSynthesis.speaking || speechSynthesis.pending;
+    if (busy) speechSynthesis.cancel();
+    if (speechSynthesis.paused) speechSynthesis.resume();
+    timer = setTimeout(() => speechSynthesis.speak(utter), busy ? 80 : 0);
+  }
+
+  /* Janela "Áudio": escolher a voz, a velocidade e testar. */
+  let audioDlg = null;
+  function audioSettings() {
+    if (!audioDlg) {
+      audioDlg = document.createElement('dialog');
+      audioDlg.className = 'sheet';
+      document.body.appendChild(audioDlg);
+      audioDlg.addEventListener('click', (ev) => {
+        if (ev.target === audioDlg || ev.target.closest('[data-close]')) return audioDlg.close();
+        if (ev.target.closest('[data-test]')) {
+          speak('こんにちは。にほんご', +audioDlg.querySelector('#rateIn').value, audioDlg.querySelector('#voiceSel').value);
+        }
+      });
+      audioDlg.addEventListener('change', (ev) => {
+        if (ev.target.id === 'voiceSel') store.set('voice', ev.target.value);
+        if (ev.target.id === 'rateIn') store.set('rate', +ev.target.value);
+      });
+      audioDlg.addEventListener('input', (ev) => {
+        if (ev.target.id === 'rateIn') audioDlg.querySelector('#rateOut').textContent = (+ev.target.value).toFixed(1) + 'x';
+      });
+    }
+    const voices = jaVoices();
+    const rate = store.get('rate', 0.8);
+    audioDlg.innerHTML = `
+      <div class="sheet-inner audio-set">
+        <div class="sheet-head">
+          <span class="flash-bolt">${icon.sound}</span>
+          <div><b class="flash-title">Áudio</b><p class="muted small">Voz japonesa usada nos botões de ouvir</p></div>
+          <button type="button" class="icon-btn" data-close aria-label="Fechar">✕</button>
+        </div>
+        ${voices.length ? `
+          <label>Voz
+            <select id="voiceSel">${voices.map((v) => `<option value="${esc(v.name)}">${esc(v.name)}${v.localService ? '' : ' (online)'}</option>`).join('')}</select>
+          </label>` : '<p class="note">Nenhuma voz japonesa encontrada neste aparelho. Adicione "Japonês" nas vozes/idiomas do sistema e reabra o navegador.</p>'}
+        <label>Velocidade <output id="rateOut">${rate.toFixed(1)}x</output>
+          <input type="range" id="rateIn" min="0.5" max="1.2" step="0.1" value="${rate}">
+        </label>
+        <button type="button" class="btn" data-test>${icon.sound} Testar</button>
+        <p class="muted small">Não saiu som? Confira o volume e experimente outra voz — as marcadas "(online)" precisam de internet
+        e às vezes falham no computador.</p>
+      </div>`;
+    audioDlg.showModal();
   }
 
   const icon = {
@@ -62,5 +120,5 @@ NJ.util = (function () {
     eye: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5C6.5 5 2.7 9 1.5 12c1.2 3 5 7 10.5 7s9.3-4 10.5-7C21.3 9 17.5 5 12 5zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>'
   };
 
-  return { esc, store, toast, speak, icon };
+  return { esc, store, toast, speak, audioSettings, icon };
 })();

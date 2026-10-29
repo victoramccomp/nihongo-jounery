@@ -87,3 +87,16 @@
 @media (prefers-reduced-motion: reduce) {
   .flash-inner { transition: none; }
 }
+
+/* Janela de áudio */
+.top-actions { display: flex; gap: 6px; }
+.audio-set { display: flex; flex-direction: column; gap: 14px; }
+.audio-set label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: .92rem; }
+.audio-set select {
+  min-height: 42px; padding: 6px 10px; border-radius: 12px;
+  border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); font: inherit; font-weight: 400;
+}
+.audio-set input[type=range] { accent-color: var(--accent); }
+.audio-set output { font-weight: 400; color: var(--muted); }
+.audio-set .btn { align-self: flex-start; }
+.audio-set p { margin: 0; }

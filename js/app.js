@@ -79,6 +79,8 @@
   window.addEventListener('hashchange', route);
   route();
 
+  document.getElementById('audioBtn').addEventListener('click', () => NJ.util.audioSettings());
+
   /* Tema: segue o sistema até o usuário escolher. */
   document.getElementById('themeBtn').addEventListener('click', () => {
     const root = document.documentElement;
