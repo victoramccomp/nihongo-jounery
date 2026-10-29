@@ -98,5 +98,5 @@
 }
 .audio-set input[type=range] { accent-color: var(--accent); }
 .audio-set output { font-weight: 400; color: var(--muted); }
-.audio-set .btn { align-self: flex-start; }
+.audio-tests { display: flex; flex-wrap: wrap; gap: 8px; }
 .audio-set p { margin: 0; }

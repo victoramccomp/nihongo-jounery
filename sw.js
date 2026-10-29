@@ -1,6 +1,6 @@
 /* Service worker: guarda o app no aparelho para estudar sem internet.
    Ao alterar qualquer arquivo, aumente VERSION para os celulares baixarem a versão nova. */
-const VERSION = 'nj-v4';
+const VERSION = 'nj-v5';
 const FILES = [
   './',
   'index.html',

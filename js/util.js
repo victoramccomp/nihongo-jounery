@@ -39,6 +39,29 @@ NJ.util = (function () {
     speechSynthesis.addEventListener && speechSynthesis.addEventListener('voiceschanged', () => speechSynthesis.getVoices());
   }
 
+  /* "Acorda" a saída de som antes de falar. Fones Bluetooth e algumas placas de som entram em repouso e
+     cortam o começo do áudio ao voltar: numa frase perde-se o início, mas uma sílaba curta some inteira.
+     Um tom inaudível (20 Hz, volume quase zero) mantém o dispositivo ativo durante a fala. */
+  let actx = null, awakeUntil = 0;
+  function wakeAudio(seconds) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return 0;
+    try {
+      actx = actx || new AC();
+      if (actx.state === 'suspended') actx.resume();
+      const now = performance.now();
+      const wasAsleep = now > awakeUntil;
+      const osc = actx.createOscillator(), gain = actx.createGain();
+      osc.frequency.value = 20;
+      gain.gain.value = 0.0008;
+      osc.connect(gain).connect(actx.destination);
+      osc.start();
+      osc.stop(actx.currentTime + seconds);
+      awakeUntil = Math.max(awakeUntil, now + seconds * 1000);
+      return wasAsleep ? 350 : 0;   // se estava em repouso, dá um tempo para o dispositivo ligar
+    } catch (e) { return 0; }
+  }
+
   let utter = null;      // referência global: sem ela o Chrome pode descartar a fala no meio
   let timer = null;
   function speak(text, rate, voiceName) {
@@ -60,7 +83,8 @@ NJ.util = (function () {
     const busy = speechSynthesis.speaking || speechSynthesis.pending;
     if (busy) speechSynthesis.cancel();
     if (speechSynthesis.paused) speechSynthesis.resume();
-    timer = setTimeout(() => speechSynthesis.speak(utter), busy ? 80 : 0);
+    const wake = wakeAudio(Math.min(8, 2.5 + text.length * 0.4));
+    timer = setTimeout(() => speechSynthesis.speak(utter), Math.max(busy ? 80 : 0, wake));
   }
 
   /* Janela "Áudio": escolher a voz, a velocidade e testar. */
@@ -72,8 +96,10 @@ NJ.util = (function () {
       document.body.appendChild(audioDlg);
       audioDlg.addEventListener('click', (ev) => {
         if (ev.target === audioDlg || ev.target.closest('[data-close]')) return audioDlg.close();
-        if (ev.target.closest('[data-test]')) {
-          speak('こんにちは。にほんご', +audioDlg.querySelector('#rateIn').value, audioDlg.querySelector('#voiceSel').value);
+        const t = ev.target.closest('[data-test]');
+        if (t) {
+          const sel = audioDlg.querySelector('#voiceSel');
+          speak(t.dataset.test, +audioDlg.querySelector('#rateIn').value, sel ? sel.value : '');
         }
       });
       audioDlg.addEventListener('change', (ev) => {
@@ -100,9 +126,13 @@ NJ.util = (function () {
         <label>Velocidade <output id="rateOut">${rate.toFixed(1)}x</output>
           <input type="range" id="rateIn" min="0.5" max="1.2" step="0.1" value="${rate}">
         </label>
-        <button type="button" class="btn" data-test>${icon.sound} Testar</button>
+        <div class="audio-tests">
+          <button type="button" class="btn" data-test="こんにちは。にほんご">${icon.sound} Testar frase</button>
+          <button type="button" class="btn outline" data-test="あ">${icon.sound} Testar sílaba (あ)</button>
+        </div>
         <p class="muted small">Não saiu som? Confira o volume e experimente outra voz — as marcadas "(online)" precisam de internet
-        e às vezes falham no computador.</p>
+        e às vezes falham no computador. Se a frase sai mas a sílaba não, o começo do áudio está sendo cortado pela saída
+        de som (comum em fones Bluetooth): o app já tenta evitar isso, mas trocar de saída costuma resolver.</p>
       </div>`;
     audioDlg.showModal();
   }
