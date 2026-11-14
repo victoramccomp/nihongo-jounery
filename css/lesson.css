@@ -173,8 +173,13 @@
 
 /* ---------- Histórias ---------- */
 .st-player { position: sticky; top: 58px; z-index: 5; padding: 10px; margin: 0 0 12px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--line); }
-.st-player audio { display: block; width: 100%; height: 44px; }
-.st-tools { display: flex; align-items: center; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.st-bar { display: flex; align-items: center; gap: 10px; }
+.st-seek { flex: 1; min-width: 0; height: 28px; accent-color: var(--accent); }
+.st-time { font-variant-numeric: tabular-nums; font-size: .85rem; color: var(--muted); min-width: 36px; text-align: center; }
+.st-tools { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
+.st-pp { width: 52px !important; height: 52px !important; }
+.st-pp svg { width: 28px; height: 28px; }
+.st-rates { display: inline-flex; gap: 4px; }
 .st-tools .chip { min-height: 30px; padding: 2px 10px; }
 .st-tools .chip.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .st-toggles { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -211,3 +216,57 @@ ruby rt { font-size: .5em; font-weight: 600; color: var(--muted); letter-spacing
 .st-sfx { text-align: center; color: var(--muted); }
 .st-pt-inline { display: none; }
 .show-pt .st-pt-inline, .st-sfx.open .st-pt-inline { display: inline; }
+
+/* ---------- Acordeão de módulos (página inicial) ---------- */
+.acc-list { grid-template-columns: 1fr !important; }
+.acc { padding: 0; margin: 0; overflow: hidden; }
+.acc-head { display: flex; align-items: center; gap: 14px; padding: 14px 16px; list-style: none; cursor: pointer; }
+.acc-head::-webkit-details-marker { display: none; }
+.acc.fixed .acc-head { cursor: default; }
+.acc.fixed { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.acc-chev { flex: none; color: var(--muted); transition: transform .2s; }
+.acc-chev svg { width: 24px; height: 24px; }
+details.acc[open] .acc-chev { transform: rotate(90deg); }
+.acc-body { padding: 0 16px 16px; border-top: 1px solid var(--line); }
+.acc-body > p { margin: 12px 0 8px; }
+.acc-lessons { list-style: none; padding: 0; margin: 0 0 10px; display: grid; gap: 6px; }
+.acc-lessons a, .acc-aside {
+  display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 12px;
+  background: var(--surface-2); color: var(--ink); text-decoration: none;
+}
+.acc-lessons a > span:last-child { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.acc-lessons .lesson-n { width: 30px; height: 30px; font-size: .85rem; }
+.acc-lessons .lesson-n svg { width: 18px; height: 18px; }
+.acc-lessons a.done .lesson-n { background: var(--ok); color: #fff; }
+.acc-lessons a:hover, .acc-aside:hover { outline: 1px solid var(--accent); }
+.acc-aside { margin-bottom: 10px; border: 1px dashed var(--line); background: transparent; }
+.acc-aside .jp { min-width: 30px; white-space: nowrap; text-align: center; font-size: 1.2rem; color: var(--accent); }
+.acc-aside.soon { opacity: .65; }
+.acc-open { text-decoration: none; }
+
+/* ---------- Kanji das histórias ---------- */
+.kanji-page h1 .jp { color: var(--accent); margin-left: 6px; }
+.kj-group { margin-top: 26px; }
+.kj-group h2 { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; font-size: 1.2rem; }
+.kj-group > .chip { text-decoration: none; margin-bottom: 12px; }
+.kj-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+.kj-card { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+.kj-char {
+  width: 72px; height: 72px; flex: none; border: 0; border-radius: 14px;
+  background: var(--surface-2); color: var(--ink); font-size: 2.9rem; line-height: 1; cursor: pointer;
+}
+.kj-char:hover { color: var(--accent); }
+.kj-body { flex: 1; min-width: 0; }
+.kj-mean { font-size: 1.05rem; }
+.kj-read { margin: 4px 0 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: .95rem; }
+.kj-read .tag { font-size: .7rem; padding: 1px 7px; }
+.kj-read .tag ~ .tag { margin-left: 6px; }
+.kj-words { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: .95rem; }
+.kj-words li { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.kj-words .jp { font-size: 1.15rem; line-height: 1.9; }
+.kj-sheet .sheet-char { font-family: var(--jp); }
+.kj-sheet-mean { font-size: 1.25rem; }
+.kj-sheet h3 { margin: 14px 0 8px; font-size: .95rem; }
+.sheet-frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 6px; }
+.sheet-frames figure { margin: 0; background: var(--surface-2); border-radius: 8px; padding: 3px 3px 1px; text-align: center; }
+.sheet-frames figcaption { font-size: .7rem; color: var(--muted); }

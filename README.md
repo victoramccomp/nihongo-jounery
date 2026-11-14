@@ -14,7 +14,11 @@ Funciona no celular e também **offline** depois do primeiro acesso (PWA: dá pa
 3. **Romaji**: os jesuítas portugueses, Hepburn × Kunrei × Nihon-shiki, armadilhas de pronúncia para brasileiros,
    vogais longas e como digitar japonês, com um teclado de treino romaji → kana.
 
-O **Kanji** fica "à parte" dentro do Módulo 1: entra aos poucos, junto com as histórias dos módulos seguintes.
+O **Kanji** fica "à parte" dentro do Módulo 1 (`#/kanji`): lista os kanji que já apareceram nas histórias, por módulo,
+com significado, leituras on/kun, as palavras da história (com áudio) e a ordem dos traços. Os dados ficam em
+`data/kanji.js` e os traços em `data/kanji-strokes.js` (KanjiVG). Ao adicionar uma história, inclua os kanji novos nos dois.
+
+Na página inicial os módulos aparecem em acordeão; o Módulo 1 fica fixo e aberto no topo.
 
 Cada aula tem testes rápidos; passar no teste final com 80% marca a aula como concluída.
 
@@ -91,7 +95,8 @@ modules/m1/           Módulo 1: m1.js (apresentação), hiragana.js, katakana.j
 modules/stories.js    Módulos 2–4 e a aula de história de cada um
 modules/mN/historia.js  falas das histórias (geradas por tools/build_stories.py)
 audio/mN/historia.mp3   áudio das histórias (fora do cache offline)
-js/story.js           tela da história: áudio, furigana e tradução
+js/story.js           tela da história: player de áudio, furigana e tradução
+js/kanji.js           página dos kanji das histórias
 tools/                scripts para gerar histórias e o subconjunto da fonte
 data/sounds.js        pronúncia por som (compartilhada por hiragana e katakana)
 data/hiragana.js      dados do hiragana

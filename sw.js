@@ -1,6 +1,6 @@
 /* Service worker: guarda o app no aparelho para estudar sem internet.
    Ao alterar qualquer arquivo, aumente VERSION para os celulares baixarem a versão nova. */
-const VERSION = 'nj-v6';
+const VERSION = 'nj-v7';
 const FILES = [
   './',
   'index.html',
@@ -20,6 +20,7 @@ const FILES = [
   'modules/m1/katakana.js',
   'modules/m1/romaji.js',
   'js/story.js',
+  'js/kanji.js',
   'modules/stories.js',
   'modules/m2/historia.js',
   'modules/m3/historia.js',
@@ -28,6 +29,8 @@ const FILES = [
   'data/sounds.js',
   'data/hiragana.js',
   'data/katakana.js',
+  'data/kanji-strokes.js',
+  'data/kanji.js',
   'fonts/klee-one-400.woff2',
   'fonts/klee-one-600.woff2',
   'icons/icon.svg',

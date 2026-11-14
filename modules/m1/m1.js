@@ -5,7 +5,8 @@ NJ.Course.addModule({
   title: 'Os alfabetos japoneses',
   desc: 'Hiragana, katakana e romaji: de onde vieram, para que servem e cada caractere explicado.',
   aside: [
-    { jp: '漢字', title: 'Kanji', desc: 'Os ideogramas entram aos poucos, junto com as histórias e os próximos módulos.' }
+    { jp: '漢字', title: 'Kanji', href: '#/kanji', count: () => NJ.KanjiPage.count() + ' kanji das histórias',
+      desc: 'Os ideogramas entram aos poucos: aqui ficam os kanji que já apareceram nas histórias.' }
   ],
   intro: () => `
     <p>Bem-vindo à primeira etapa da jornada! Antes de qualquer palavra ou frase, você precisa conhecer as

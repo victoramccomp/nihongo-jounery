@@ -3,7 +3,8 @@
 window.NJ = window.NJ || {};
 
 NJ.Story = (function () {
-  const { esc, store } = NJ.util;
+  const { esc, store, icon, toast } = NJ.util;
+  const fmt = (t) => (isFinite(t) ? Math.floor(t / 60) + ':' + String(Math.floor(t % 60)).padStart(2, '0') : '0:00');
 
   function ruby(markup) {
     return markup.split(/(\{[^}]*\})/).map((part) => {
@@ -41,10 +42,16 @@ NJ.Story = (function () {
     const trad = store.get('translate', false);
     host.innerHTML = `
       <div class="st-player">
-        <audio controls preload="metadata" src="${esc(audioSrc)}"></audio>
+        <audio preload="metadata" src="${esc(audioSrc)}"></audio>
+        <div class="st-bar">
+          <span class="st-time" data-cur>0:00</span>
+          <input type="range" class="st-seek" min="0" max="1000" value="0" step="1" aria-label="Posição do áudio">
+          <span class="st-time" data-dur>0:00</span>
+        </div>
         <div class="st-tools">
-          <span class="muted small">Velocidade</span>
-          ${[0.75, 1, 1.25].map((r) => `<button type="button" class="chip${r === 1 ? ' on' : ''}" data-rate="${r}">${r}x</button>`).join('')}
+          <button type="button" class="icon-btn" data-skip="-5" aria-label="Voltar 5 segundos">${icon.replay}</button>
+          <button type="button" class="icon-btn primary st-pp" data-pp aria-label="Tocar">${icon.play}</button>
+          <span class="st-rates">${[0.75, 1, 1.25].map((r) => `<button type="button" class="chip${r === 1 ? ' on' : ''}" data-rate="${r}">${r}x</button>`).join('')}</span>
         </div>
       </div>
       <div class="st-toggles">
@@ -56,7 +63,37 @@ NJ.Story = (function () {
 
     const audio = host.querySelector('audio');
     const list = host.querySelector('.st-lines');
+    const pp = host.querySelector('[data-pp]'), seek = host.querySelector('.st-seek');
+    const cur = host.querySelector('[data-cur]'), dur = host.querySelector('[data-dur]');
+    let seeking = false;
+    const syncPP = () => { pp.innerHTML = audio.paused ? icon.play : icon.pause; pp.setAttribute('aria-label', audio.paused ? 'Tocar' : 'Pausar'); };
+    const syncTime = () => {
+      cur.textContent = fmt(audio.currentTime);
+      if (!seeking && audio.duration) seek.value = Math.round((audio.currentTime / audio.duration) * 1000);
+    };
+    audio.addEventListener('loadedmetadata', () => { dur.textContent = fmt(audio.duration); });
+    audio.addEventListener('timeupdate', syncTime);
+    audio.addEventListener('play', syncPP);
+    audio.addEventListener('pause', syncPP);
+    audio.addEventListener('ended', syncPP);
+    audio.addEventListener('error', () => toast('Não foi possível carregar o áudio. Confira a internet e tente de novo.'));
+    seek.addEventListener('input', () => { seeking = true; if (audio.duration) cur.textContent = fmt((seek.value / 1000) * audio.duration); });
+    seek.addEventListener('change', () => { seeking = false; if (audio.duration) audio.currentTime = (seek.value / 1000) * audio.duration; });
+
+    async function togglePlay() {
+      if (!audio.paused) { audio.pause(); return; }
+      try {
+        if (audio.error || audio.networkState === 3) audio.load();
+        await audio.play();
+      } catch (e) {
+        toast('O áudio não tocou (' + (e && e.name ? e.name : 'erro') + '). Confira a internet e o volume de mídia.');
+      }
+    }
+
     host.addEventListener('click', (ev) => {
+      if (ev.target.closest('[data-pp]')) return togglePlay();
+      const skip = ev.target.closest('[data-skip]');
+      if (skip) { audio.currentTime = Math.max(0, audio.currentTime + +skip.dataset.skip); syncTime(); return; }
       const rate = ev.target.closest('[data-rate]');
       if (rate) {
         audio.playbackRate = +rate.dataset.rate;

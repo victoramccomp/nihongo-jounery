@@ -233,7 +233,12 @@ NJ.Course = (function () {
         </ol>
         ${(m.aside || []).length ? `
           <h2 class="home-h">À parte</h2>
-          <div class="modules">${m.aside.map((a) => `
+          <div class="modules">${m.aside.map((a) => a.href ? `
+            <a class="card module" href="${esc(a.href)}">
+              <span class="mod-jp jp" lang="ja">${esc(a.jp)}</span>
+              <span class="mod-body"><b>${esc(a.title)}</b><span class="muted small">${esc(a.desc)}</span>
+              ${a.count ? `<span class="tag">${esc(a.count())}</span>` : ''}</span>
+            </a>` : `
             <div class="card module soon">
               <span class="mod-jp jp" lang="ja">${esc(a.jp)}</span>
               <span class="mod-body"><b>${esc(a.title)}</b><span class="muted small">${esc(a.desc)}</span></span>
