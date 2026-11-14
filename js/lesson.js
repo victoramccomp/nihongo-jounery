@@ -10,6 +10,9 @@ NJ.Course = (function () {
   /* ---------- Registro ---------- */
   function addModule(m) { m.lessons = m.lessons || []; modules.push(m); }
   function addLesson(moduleId, lesson) { getModule(moduleId).lessons.push(lesson); }
+  /* Histórias de abertura: falas geradas a partir de NihongoMaterial (modules/mN/historia.js). */
+  const stories = {};
+  function addStory(moduleId, lines) { stories[moduleId] = lines; }
   const getModule = (id) => modules.find((m) => m.id === id);
 
   const doneKey = (m, l) => m + '/' + l;
@@ -70,7 +73,10 @@ NJ.Course = (function () {
   /* Teclado de treino romaji → kana. */
   function ime() { return `<div class="ime card-in" data-widget="ime"></div>`; }
 
-  const h = { k, w, box, row, compare, quiz, ime, entry };
+  /* História com áudio, furigana e tradução. */
+  function story(moduleId) { return `<div class="story" data-widget="story" data-mod="${esc(moduleId)}"></div>`; }
+
+  const h = { k, w, box, row, compare, quiz, ime, story, entry };
 
   /* ---------- Janela de detalhe do kana ---------- */
   let sheet, sheetWidget;
@@ -188,8 +194,11 @@ NJ.Course = (function () {
       });
     });
     root.querySelectorAll('[data-widget=ime]').forEach((el) => widgets.push(NJ.Ime.widget(el)));
+    root.querySelectorAll('[data-widget=story]').forEach((el) => {
+      widgets.push(NJ.Story.widget(el, stories[el.dataset.mod] || [], `audio/m${el.dataset.mod}/historia.mp3`));
+    });
     root.querySelectorAll('[data-widget=quiz]').forEach((el) => {
-      const cfg = lesson.quizzes[el.dataset.quiz];
+      const cfg = (lesson.quizzes || {})[el.dataset.quiz];
       runQuiz(el, Object.assign({}, cfg, { onPass: cfg.final ? () => { setDone(moduleId, lesson.id, true); syncDoneBtn(root, moduleId, lesson.id); } : null }));
     });
   }
@@ -222,6 +231,14 @@ NJ.Course = (function () {
               <span class="muted small">${esc(l.desc)} · ~${l.mins} min</span></span>
             </a></li>`).join('')}
         </ol>
+        ${(m.aside || []).length ? `
+          <h2 class="home-h">À parte</h2>
+          <div class="modules">${m.aside.map((a) => `
+            <div class="card module soon">
+              <span class="mod-jp jp" lang="ja">${esc(a.jp)}</span>
+              <span class="mod-body"><b>${esc(a.title)}</b><span class="muted small">${esc(a.desc)}</span></span>
+              <span class="tag">em breve</span>
+            </div>`).join('')}</div>` : ''}
       </section>`;
   }
 
@@ -246,7 +263,7 @@ NJ.Course = (function () {
           <p class="kicker">Módulo ${esc(m.id)} · Aula ${idx + 1}</p>
           <h1>${esc(l.title)} <span class="jp" lang="ja">${esc(l.jp)}</span></h1>
           <p class="lead">${l.lead}</p>
-          <details class="toc card">
+          <details class="toc card"${sections.length < 3 ? ' hidden' : ''}>
             <summary>Nesta aula (${sections.length} partes · ~${l.mins} min)</summary>
             <ol>${sections.map((s, i) => `<li><button type="button" data-goto="s${i}">${esc(s.title)}</button></li>`).join('')}</ol>
           </details>
@@ -294,5 +311,5 @@ NJ.Course = (function () {
     if (onScroll) { removeEventListener('scroll', onScroll); onScroll = null; }
   }
 
-  return { addModule, addLesson, getModule, modules, moduleProgress, overview, lessonPage, leave, isDone };
+  return { addModule, addLesson, addStory, getModule, modules, moduleProgress, overview, lessonPage, leave, isDone };
 })();

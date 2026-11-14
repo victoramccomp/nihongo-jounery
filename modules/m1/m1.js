@@ -4,6 +4,9 @@ NJ.Course.addModule({
   jp: '文字',
   title: 'Os alfabetos japoneses',
   desc: 'Hiragana, katakana e romaji: de onde vieram, para que servem e cada caractere explicado.',
+  aside: [
+    { jp: '漢字', title: 'Kanji', desc: 'Os ideogramas entram aos poucos, junto com as histórias e os próximos módulos.' }
+  ],
   intro: () => `
     <p>Bem-vindo à primeira etapa da jornada! Antes de qualquer palavra ou frase, você precisa conhecer as
     <b>letras</b> do japonês — e aqui vem a primeira surpresa: o japonês não tem um alfabeto, tem
@@ -18,7 +21,8 @@ NJ.Course.addModule({
       <li><b>Katakana</b> — a escrita das palavras estrangeiras, dos nomes de fora e dos sons.</li>
       <li><b>Romaji</b> — o japonês escrito com as nossas letras: útil para começar, para digitar e para não se perder em placas.</li>
     </ul>
-    <p>Os <b>kanji</b> (ideogramas de origem chinesa) ganham um módulo só para eles mais adiante.
+    <p>Os <b>kanji</b> (ideogramas de origem chinesa) também fazem parte deste módulo, mas à parte: eles vão
+    sendo apresentados aos poucos, junto com as histórias dos próximos módulos.
     Cada aula termina com um teste rápido; passando com 80% ou mais, a aula é marcada como concluída.
     E sempre que quiser revisar um caractere, use a <a href="#/kana/hiragana">colinha de kana</a>.</p>`
 });

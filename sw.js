@@ -1,6 +1,6 @@
 /* Service worker: guarda o app no aparelho para estudar sem internet.
    Ao alterar qualquer arquivo, aumente VERSION para os celulares baixarem a versão nova. */
-const VERSION = 'nj-v5';
+const VERSION = 'nj-v6';
 const FILES = [
   './',
   'index.html',
@@ -19,6 +19,11 @@ const FILES = [
   'modules/m1/hiragana.js',
   'modules/m1/katakana.js',
   'modules/m1/romaji.js',
+  'js/story.js',
+  'modules/stories.js',
+  'modules/m2/historia.js',
+  'modules/m3/historia.js',
+  'modules/m4/historia.js',
   'data/strokes.js',
   'data/sounds.js',
   'data/hiragana.js',
@@ -44,11 +49,14 @@ self.addEventListener('activate', (ev) => {
 
 /* Rede primeiro (pega atualizações quando online), cache como reserva quando offline. */
 self.addEventListener('fetch', (ev) => {
-  if (ev.request.method !== 'GET' || new URL(ev.request.url).origin !== location.origin) return;
+  const url = new URL(ev.request.url);
+  if (ev.request.method !== 'GET' || url.origin !== location.origin) return;
+  /* Áudios das histórias (MBs, pedidos em pedaços com Range) vão direto à rede: o cache não guarda respostas parciais. */
+  if (url.pathname.endsWith('.mp3') || ev.request.headers.has('range')) return;
   ev.respondWith(
     fetch(ev.request)
       .then((res) => {
-        if (res.ok) { const copy = res.clone(); caches.open(VERSION).then((c) => c.put(ev.request, copy)); }
+        if (res.status === 200) { const copy = res.clone(); caches.open(VERSION).then((c) => c.put(ev.request, copy)); }
         return res;
       })
       .catch(() => caches.match(ev.request, { ignoreSearch: true }).then((r) => r || caches.match('index.html')))

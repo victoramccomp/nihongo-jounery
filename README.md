@@ -14,7 +14,26 @@ Funciona no celular e também **offline** depois do primeiro acesso (PWA: dá pa
 3. **Romaji**: os jesuítas portugueses, Hepburn × Kunrei × Nihon-shiki, armadilhas de pronúncia para brasileiros,
    vogais longas e como digitar japonês, com um teclado de treino romaji → kana.
 
+O **Kanji** fica "à parte" dentro do Módulo 1: entra aos poucos, junto com as histórias dos módulos seguintes.
+
 Cada aula tem testes rápidos; passar no teste final com 80% marca a aula como concluída.
+
+**Módulos 2 a 4** começam por uma **história** (Emi e o robô Saver): áudio original, falas com furigana em todos
+os kanji e tradução fala por fala (botão ou toque na fala).
+
+| Módulo | História |
+|---|---|
+| 2 · O robô que veio do céu | Emi encontra Saver, um robô sem nome |
+| 3 · Compras e família | Loja de conveniência e a família da Emi |
+| 4 · O primeiro dia na escola | Saver conhece a professora Yuki |
+
+### Adicionando uma história nova
+
+1. Coloque em `../NihongoMaterial/Material/moduloNN/` os arquivos `historiaXX-jp.txt`, `historiaXX-ptbr.txt` e `historiaXX.mp3`
+   (falas na mesma ordem nos dois textos, no formato `Nome：fala`; narração começa com ▶︎).
+2. Rode `python tools/build_stories.py ../NihongoMaterial/Material .` — gera `modules/mN/historia.js` com furigana e copia o áudio.
+   Se aparecer "kanji sem furigana", acrescente a leitura na lista `F` do script.
+3. Registre o módulo em `modules/stories.js`, inclua o script no `index.html` e no `sw.js` e rode `python tools/font_subset.py .`.
 
 ## Flashcards
 
@@ -69,6 +88,11 @@ js/ime.js             conversor romaji → kana (teclado de treino)
 js/flash.js           flashcards (botão do raio)
 js/app.js             roteador, página inicial e ferramentas
 modules/m1/           Módulo 1: m1.js (apresentação), hiragana.js, katakana.js, romaji.js
+modules/stories.js    Módulos 2–4 e a aula de história de cada um
+modules/mN/historia.js  falas das histórias (geradas por tools/build_stories.py)
+audio/mN/historia.mp3   áudio das histórias (fora do cache offline)
+js/story.js           tela da história: áudio, furigana e tradução
+tools/                scripts para gerar histórias e o subconjunto da fonte
 data/sounds.js        pronúncia por som (compartilhada por hiragana e katakana)
 data/hiragana.js      dados do hiragana
 data/katakana.js      dados do katakana

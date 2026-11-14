@@ -15,7 +15,7 @@
     }
   ];
   /* Módulos ainda não escritos aparecem como "em breve". */
-  const soon = [{ id: '2', jp: '漢字', title: 'Kanji', desc: 'Em breve.' }];
+  const soon = [];
 
   const bar = (s) => `<span class="progress"><span class="bar"><i style="width:${(s.done / s.total) * 100}%"></i></span><span>${s.done}/${s.total}${s.label ? ' ' + s.label : ''}</span></span>`;
 
