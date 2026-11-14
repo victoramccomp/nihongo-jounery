@@ -6,10 +6,35 @@ NJ.Story = (function () {
   const { esc, store, icon, toast } = NJ.util;
   const fmt = (t) => (isFinite(t) ? Math.floor(t / 60) + ':' + String(Math.floor(t % 60)).padStart(2, '0') : '0:00');
 
+  const isKanji = (c) => c >= '一' && c <= '鿿';
+
+  /* Kanji usados numa história, na ordem em que aparecem, com contagem e palavras (kanji + leitura). */
+  function kanjiOf(lines) {
+    const map = new Map();
+    lines.forEach((l) => [l.who || '', l.jp].forEach((txt) => {
+      for (const [, k, r] of txt.matchAll(/\{([^|}]+)\|([^}]+)\}/g)) {
+        [...k].filter(isKanji).forEach((c) => {
+          if (!map.has(c)) map.set(c, { k: c, n: 0, words: new Map() });
+          const e = map.get(c);
+          e.n++;
+          e.words.set(k, r);
+        });
+      }
+    }));
+    return [...map.values()];
+  }
+  /* Módulo em que o kanji apareceu pela primeira vez (data/kanji.js). */
+  function firstModule(c) {
+    for (const [mod, list] of Object.entries(NJ.kanji || {})) if (list.some((e) => e.k === c)) return mod;
+    return null;
+  }
+
   function ruby(markup) {
     return markup.split(/(\{[^}]*\})/).map((part) => {
       const m = /^\{([^|}]+)\|([^}]+)\}$/.exec(part);
-      return m ? `<ruby>${esc(m[1])}<rt>${esc(m[2])}</rt></ruby>` : esc(part);
+      if (!m) return esc(part);
+      const kj = [...m[1]].filter(isKanji).join('');
+      return `<ruby${kj ? ` data-kj="${esc(kj)}"` : ''}>${esc(m[1])}<rt>${esc(m[2])}</rt></ruby>`;
     }).join('');
   }
 
@@ -37,10 +62,39 @@ NJ.Story = (function () {
     </li>`;
   }
 
-  function widget(host, lines, audioSrc) {
+  function sideHtml(kanji, mod) {
+    const fresh = kanji.filter((e) => firstModule(e.k) === mod).length;
+    return `
+      <div class="st-side-head">
+        <b>Kanji desta história</b>
+        <button type="button" class="icon-btn st-side-close" data-side-close aria-label="Fechar">✕</button>
+      </div>
+      <p class="muted small">${kanji.length} kanji · ${fresh} novos. Toque num kanji para destacá-lo no texto.</p>
+      <button type="button" class="chip st-hl-clear" data-hl-clear hidden>Limpar destaque</button>
+      <ol class="st-kj-list">${kanji.map((e) => {
+        const info = NJ.KanjiPage ? NJ.KanjiPage.find(e.k) : null;
+        const fm = firstModule(e.k);
+        return `<li>
+          <button type="button" class="st-kj" data-hl="${esc(e.k)}" aria-pressed="false">
+            <span class="jp st-kj-char" lang="ja">${esc(e.k)}</span>
+            <span class="st-kj-txt">
+              <b>${esc(info ? info.m : '')}</b>
+              <small class="jp" lang="ja">${[...e.words].map(([w, r]) => `${esc(w)}（${esc(r)}）`).join('、')}</small>
+            </span>
+            <span class="st-kj-meta">${fm === mod ? '<span class="tag new">novo</span>' : fm ? `<span class="tag">M${esc(fm)}</span>` : ''}<small>×${e.n}</small></span>
+          </button>
+          <button type="button" class="icon-btn st-kj-info" data-kjsheet="${esc(e.k)}" aria-label="Traços de ${esc(e.k)}">${icon.eye}</button>
+        </li>`;
+      }).join('')}</ol>`;
+  }
+
+  function widget(host, lines, audioSrc, mod) {
     const furi = store.get('furigana', true);
     const trad = store.get('translate', false);
+    const kanji = kanjiOf(lines);
     host.innerHTML = `
+      <div class="st-layout">
+      <div class="st-main">
       <div class="st-player">
         <audio preload="metadata" src="${esc(audioSrc)}"></audio>
         <div class="st-bar">
@@ -59,7 +113,12 @@ NJ.Story = (function () {
         <button type="button" class="chip" data-tg="trad" aria-pressed="${trad}">PT Tradução</button>
       </div>
       <p class="muted small">Toque numa fala para ver ou esconder só a tradução dela.</p>
-      <ol class="st-lines${furi ? '' : ' no-furi'}${trad ? ' show-pt' : ''}">${lines.map(lineHtml).join('')}</ol>`;
+      <ol class="st-lines${furi ? '' : ' no-furi'}${trad ? ' show-pt' : ''}">${lines.map(lineHtml).join('')}</ol>
+      </div>
+      <aside class="st-side" aria-label="Kanji desta história">${sideHtml(kanji, mod)}</aside>
+      </div>
+      <button type="button" class="st-side-fab" data-side-open aria-label="Kanji desta história"><span class="jp" lang="ja">漢字</span><small>${kanji.length}</small></button>
+      <div class="st-side-backdrop" data-side-close></div>`;
 
     const audio = host.querySelector('audio');
     const list = host.querySelector('.st-lines');
@@ -137,7 +196,28 @@ NJ.Story = (function () {
       }
     }
 
+    /* Destaque de um kanji no texto (um por vez). */
+    const layout = host.querySelector('.st-layout');
+    const narrow = () => !matchMedia('(min-width: 1100px)').matches;
+    function highlight(c) {
+      host.querySelectorAll('ruby.hl').forEach((r) => r.classList.remove('hl'));
+      host.querySelectorAll('[data-hl]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.hl === c));
+      host.querySelector('[data-hl-clear]').hidden = !c;
+      if (!c) return;
+      const hits = [...list.querySelectorAll('ruby[data-kj]')].filter((r) => r.dataset.kj.includes(c));
+      hits.forEach((r) => r.classList.add('hl'));
+      if (narrow()) layout.classList.remove('side-open');
+      if (hits[0]) hits[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
     host.addEventListener('click', (ev) => {
+      if (ev.target.closest('[data-side-open]')) return layout.classList.add('side-open');
+      if (ev.target.closest('[data-side-close]')) return layout.classList.remove('side-open');
+      const info = ev.target.closest('[data-kjsheet]');
+      if (info) return NJ.KanjiPage.open(info.dataset.kjsheet);
+      const hl = ev.target.closest('[data-hl]');
+      if (hl) return highlight(hl.getAttribute('aria-pressed') === 'true' ? null : hl.dataset.hl);
+      if (ev.target.closest('[data-hl-clear]')) return highlight(null);
       if (ev.target.closest('[data-pp]')) return togglePlay();
       const skip = ev.target.closest('[data-skip]');
       if (skip) { audio.currentTime = Math.max(0, audio.currentTime + +skip.dataset.skip); syncTime(); return; }

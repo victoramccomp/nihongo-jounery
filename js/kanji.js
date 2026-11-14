@@ -102,5 +102,5 @@ NJ.KanjiPage = (function () {
     if (sheet && sheet.open) sheet.close();
   }
 
-  return { render, leave, count: () => all().length };
+  return { render, leave, find, open: openSheet, count: () => all().length };
 })();

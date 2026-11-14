@@ -195,7 +195,7 @@ NJ.Course = (function () {
     });
     root.querySelectorAll('[data-widget=ime]').forEach((el) => widgets.push(NJ.Ime.widget(el)));
     root.querySelectorAll('[data-widget=story]').forEach((el) => {
-      widgets.push(NJ.Story.widget(el, stories[el.dataset.mod] || [], `audio/m${el.dataset.mod}/historia.mp3`));
+      widgets.push(NJ.Story.widget(el, stories[el.dataset.mod] || [], `audio/m${el.dataset.mod}/historia.mp3`, el.dataset.mod));
     });
     root.querySelectorAll('[data-widget=quiz]').forEach((el) => {
       const cfg = (lesson.quizzes || {})[el.dataset.quiz];

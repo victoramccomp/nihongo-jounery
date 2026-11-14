@@ -23,7 +23,9 @@ Na página inicial os módulos aparecem em acordeão; o Módulo 1 fica fixo e ab
 Cada aula tem testes rápidos; passar no teste final com 80% marca a aula como concluída.
 
 **Módulos 2 a 4** começam por uma **história** (Emi e o robô Saver): áudio original, falas com furigana em todos
-os kanji e tradução fala por fala (botão ou toque na fala).
+os kanji e tradução fala por fala (botão ou toque na fala). Ao lado da história, o painel **Kanji desta história**
+lista os kanji usados nela (selo "novo" para os que estreiam ali); tocar num kanji o destaca no texto. No computador o
+painel fica fixo na lateral; no celular abre pela aba 漢字 na borda direita.
 
 | Módulo | História |
 |---|---|
