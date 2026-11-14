@@ -76,17 +76,64 @@ NJ.Story = (function () {
     audio.addEventListener('play', syncPP);
     audio.addEventListener('pause', syncPP);
     audio.addEventListener('ended', syncPP);
-    audio.addEventListener('error', () => toast('Não foi possível carregar o áudio. Confira a internet e tente de novo.'));
     seek.addEventListener('input', () => { seeking = true; if (audio.duration) cur.textContent = fmt((seek.value / 1000) * audio.duration); });
     seek.addEventListener('change', () => { seeking = false; if (audio.duration) audio.currentTime = (seek.value / 1000) * audio.duration; });
 
-    async function togglePlay() {
-      if (!audio.paused) { audio.pause(); return; }
+    /* Plano B: o Firefox às vezes não consegue abrir a saída de som do <audio> (NS_ERROR_DOM_MEDIA_MEDIASINK_ERR),
+       mesmo com o arquivo perfeito. Passando o áudio pelo Web Audio, ele usa outro caminho de saída.
+       Se o plano B funcionar uma vez, o app já começa por ele nas próximas vezes. */
+    let actx = null, viaWebAudio = false, retrying = false, wantPlay = false;
+    function useWebAudio() {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (viaWebAudio || !AC) return false;
       try {
-        if (audio.error || audio.networkState === 3) audio.load();
-        await audio.play();
+        actx = new AC();
+        actx.createMediaElementSource(audio).connect(actx.destination);
+        viaWebAudio = true;
+        return true;
+      } catch (e) { return false; }
+    }
+    if (store.get('audioViaWebAudio', false)) useWebAudio();
+
+    async function start() {
+      if (actx && actx.state === 'suspended') await actx.resume();
+      if (audio.error || audio.networkState === 3) audio.load();
+      await audio.play();
+    }
+
+    async function fallback(reason) {
+      if (retrying) return;
+      if (!viaWebAudio && useWebAudio()) {
+        retrying = true;
+        const at = audio.currentTime;
+        audio.load();
+        try {
+          if (at) audio.currentTime = at;
+          await start();
+          store.set('audioViaWebAudio', true);
+        } catch (e) {
+          toast('O áudio não tocou (' + reason + '). Feche e abra o navegador ou confira a saída de som.');
+        }
+        retrying = false;
+        return;
+      }
+      toast('O áudio não tocou (' + reason + '). Feche e abra o navegador ou confira a saída de som.');
+    }
+
+    audio.addEventListener('error', () => {
+      const code = audio.error ? audio.error.code : 0;
+      if (wantPlay && code !== 2) fallback('erro ' + code);           // 2 = rede: aí não adianta trocar de caminho
+      else if (code === 2) toast('Não foi possível baixar o áudio. Confira a internet e tente de novo.');
+    });
+
+    async function togglePlay() {
+      if (!audio.paused) { audio.pause(); wantPlay = false; return; }
+      wantPlay = true;
+      try {
+        await start();
       } catch (e) {
-        toast('O áudio não tocou (' + (e && e.name ? e.name : 'erro') + '). Confira a internet e o volume de mídia.');
+        if (e && e.name === 'AbortError') return;                        // o 'error' do elemento cuida disso
+        fallback(e && e.name ? e.name : 'erro');
       }
     }
 
@@ -111,7 +158,7 @@ NJ.Story = (function () {
       const li = ev.target.closest('.st-lines > li');
       if (li && !getSelection().toString()) li.classList.toggle('open');
     });
-    return { destroy() { audio.pause(); } };
+    return { destroy() { audio.pause(); if (actx) actx.close(); } };
   }
 
   return { widget, ruby };
